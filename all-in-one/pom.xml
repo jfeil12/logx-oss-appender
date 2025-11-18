@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.logx</groupId>
+        <artifactId>logx-oss-appender-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>all-in-one</artifactId>
+    <packaging>pom</packaging>
+
+    <name>All-in-One Integration Packages</name>
+    <description>All-in-One集成包父模块，包含各日志框架与S3兼容存储的完整打包方案</description>
+
+    <modules>
+        <module>s3-log4j-oss-appender</module>
+        <module>s3-log4j2-oss-appender</module>
+        <module>s3-logback-oss-appender</module>
+    </modules>
+
+</project>

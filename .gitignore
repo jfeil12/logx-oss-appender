@@ -1,8 +1,72 @@
+.settings/
+.myeclipse/
+.gradle/
+target/
+*/.settings
+*/.classpath
+*/.project
+.classpath
+.project
+.idea/
+.svn/
+.externalToolBuilders/
+gradle/
+.recommenders/
+.metadata/
+*/node_modules
+node_modules
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Test output
+/test-output/
+
 # Compiled class file
 *.class
-
-# Log file
-*.log
 
 # BlueJ files
 *.ctxt
@@ -22,3 +86,23 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Core dumps (specific patterns to avoid affecting core packages)
+core.[0-9]*
+vgcore.*
+*.core
+# Local tooling (do not commit)
+target/
+.gemini/
+.iflow/
+.claude/
+.codex/
+.roomodes
+AGENTS.md
+CLAUDE.md
+dist/
+*.log.gz
+.sdkmanrc
+
+application.log.*
+

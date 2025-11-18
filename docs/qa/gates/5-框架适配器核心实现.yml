@@ -1,0 +1,48 @@
+# Required fields
+schema: 1
+story: "5"
+story_title: "框架适配器核心实现"
+gate: "PASS"
+status_reason: "所有验收标准均已满足，代码质量良好，测试覆盖全面"
+reviewer: "Quinn (Test Architect)"
+updated: "2025-09-24T00:00:00Z"
+
+# Always present but only active when WAIVED
+waiver: { active: false }
+
+# Issues (if any) - Use fixed severity: low | medium | high
+top_issues:
+  - severity: low
+    description: "Log4j2测试环境配置问题"
+    status: resolved
+    resolution: "已添加S3和SF OSS适配器的测试依赖，测试环境配置完整"
+
+# Risk summary
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 1 }
+  recommendations:
+    must_fix: []
+    monitor: []
+
+# Optional extended fields
+quality_score: 93
+evidence:
+  tests_reviewed: 30
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    ac_gaps: []
+
+nfr_validation:
+  security: { status: PASS, notes: "框架适配器安全机制实现完整" }
+  performance: { status: PASS, notes: "性能测试达标" }
+  reliability: { status: PASS, notes: "异常处理和重试机制完善" }
+  maintainability: { status: PASS, notes: "适配器模式使用恰当，易于扩展" }
+
+recommendations:
+  immediate: []
+  future:
+    - action: "解决Log4j2测试环境配置问题"
+      refs: []
+    - action: "持续监控各框架适配器的兼容性"
+      refs: []

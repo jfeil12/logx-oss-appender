@@ -1,0 +1,1 @@
+Before wrapping a change: ensure impacted module tests pass (`mvn test` or targeted `mvn -pl ... test`), run `mvn spotbugs:check` when touching Java logic, and execute `mvn -Psecurity verify` prior to release. Document changes per OpenSpec proposal, follow Conventional Commits, and keep tasks.md checklists updated before requesting review.

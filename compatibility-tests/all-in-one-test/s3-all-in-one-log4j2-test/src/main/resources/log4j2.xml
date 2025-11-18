@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <!-- 控制台输出 -->
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <!-- 文件输出 -->
+        <RollingFile name="FILE" fileName="logs/application.log"
+                     filePattern="logs/application.%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <!-- 错误文件输出 -->
+        <RollingFile name="ERROR_FILE" fileName="logs/application-error.log"
+                     filePattern="logs/application-error.%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+            <LevelRangeFilter minLevel="ERROR" maxLevel="FATAL" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+
+        <!-- Log4j2 OSS Appender -->
+        <Log4j2OSSAppender name="OSS_APPENDER">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Log4j2OSSAppender>
+    </Appenders>
+
+    <Loggers>
+        <!-- 设置LogX相关包的日志级别为DEBUG -->
+        <Logger name="org.logx" level="DEBUG" additivity="false">
+            <AppenderRef ref="CONSOLE"/>
+            <AppenderRef ref="FILE"/>
+            <AppenderRef ref="ERROR_FILE"/>
+            <AppenderRef ref="OSS_APPENDER"/>
+        </Logger>
+
+        <!-- 根日志配置 -->
+        <Root level="INFO">
+            <AppenderRef ref="CONSOLE"/>
+            <AppenderRef ref="FILE"/>
+            <AppenderRef ref="ERROR_FILE"/>
+            <AppenderRef ref="OSS_APPENDER"/>
+        </Root>
+    </Loggers>
+</Configuration>

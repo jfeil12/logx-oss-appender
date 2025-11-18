@@ -1,0 +1,11 @@
+test_design:
+  scenarios_total: 42
+  by_level:
+    unit: 6
+    integration: 24
+    e2e: 12
+  by_priority:
+    p0: 18
+    p1: 16
+    p2: 8
+  coverage_gaps: []

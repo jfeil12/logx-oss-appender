@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <!-- File Appender for application logs -->
+        <RollingFile name="File" fileName="logs/application.log" filePattern="logs/application.%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <!-- Error File Appender -->
+        <RollingFile name="ErrorFile" fileName="logs/application-error.log" filePattern="logs/application-error.%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+
+        <!-- Log4j2 OSS Appender -->
+        <Log4j2OSSAppender name="OSS_APPENDER">
+            <!-- appender配置将通过logx.properties文件进行 -->
+        </Log4j2OSSAppender>
+    </Appenders>
+
+    <Loggers>
+        <!-- 业务日志记录器 -->
+        <Logger name="org.logx.compatibility" level="INFO" additivity="false">
+            <AppenderRef ref="OSS_APPENDER"/>
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+            <AppenderRef ref="ErrorFile"/>
+            <AppenderRef ref="OSS_APPENDER"/>
+        </Root>
+    </Loggers>
+</Configuration>

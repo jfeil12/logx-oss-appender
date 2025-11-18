@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: logx-minio
+    ports:
+      # MinIO API端口
+      - "9000:9000"
+      # MinIO控制台端口
+      - "9001:9001"
+    environment:
+      # 访问密钥ID（测试用）
+      MINIO_ROOT_USER: minioadmin
+      # 访问密钥Secret（测试用）
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      # 数据持久化
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - logx-test-network
+
+  # MinIO客户端 - 用于初始化bucket
+  minio-init:
+    image: minio/mc:latest
+    container_name: logx-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/logx-test-bucket --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/logx-test-bucket;
+      exit 0;
+      "
+    networks:
+      - logx-test-network
+
+volumes:
+  minio-data:
+    driver: local
+
+networks:
+  logx-test-network:
+    driver: bridge

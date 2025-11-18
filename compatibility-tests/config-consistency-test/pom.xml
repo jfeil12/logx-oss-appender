@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.logx</groupId>
+        <artifactId>integration-compatibility-tests-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>config-consistency-integration-test</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Configuration Consistency Integration Test</name>
+    <description>Integration test to verify configuration consistency across all OSS Appender implementations</description>
+
+    <dependencies>
+        <!-- LogX OSS Appender Dependencies - All frameworks -->
+        <dependency>
+            <groupId>org.logx</groupId>
+            <artifactId>logback-oss-appender</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.logx</groupId>
+            <artifactId>log4j2-oss-appender</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.logx</groupId>
+            <artifactId>log4j-oss-appender</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.logx</groupId>
+            <artifactId>logx-s3-adapter</artifactId>
+        </dependency>
+
+        <!-- Jackson YAML for configuration parsing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
