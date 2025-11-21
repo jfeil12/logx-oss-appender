@@ -23,7 +23,8 @@ public class CompatibilityTestRunner {
         "spring-mvc-test",
         "all-in-one-test/s3-all-in-one-logback-test",
         "all-in-one-test/s3-all-in-one-log4j-test",
-        "all-in-one-test/s3-all-in-one-log4j2-test"
+        "all-in-one-test/s3-all-in-one-log4j2-test",
+        "jdk21-test"
     };
 
     private static final String ANSI_RESET = "\u001B[0m";

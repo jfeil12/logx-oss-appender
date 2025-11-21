@@ -62,6 +62,10 @@ mvn compile exec:java -pl compatibility-tests/test-runner
    - `multi-framework-test`
    - `spring-boot-test`
    - `spring-mvc-test`
+   - `all-in-one-test/s3-all-in-one-logback-test`
+   - `all-in-one-test/s3-all-in-one-log4j-test`
+   - `all-in-one-test/s3-all-in-one-log4j2-test`
+   - `jdk21-test`
 4. **检测错误** - 每2秒检查一次 `logs/application-error.log`
 5. **自动停止** - 发现错误立即停止并报告位置
 
@@ -75,6 +79,10 @@ compatibility-tests/jsp-servlet-test/logs/application-error.log
 compatibility-tests/multi-framework-test/logs/application-error.log
 compatibility-tests/spring-boot-test/logs/application-error.log
 compatibility-tests/spring-mvc-test/logs/application-error.log
+compatibility-tests/all-in-one-test/s3-all-in-one-logback-test/logs/application-error.log
+compatibility-tests/all-in-one-test/s3-all-in-one-log4j-test/logs/application-error.log
+compatibility-tests/all-in-one-test/s3-all-in-one-log4j2-test/logs/application-error.log
+compatibility-tests/jdk21-test/logs/application-error.log
 ```
 
 ## 输出示例
@@ -141,6 +149,21 @@ A: 确保Maven已安装并添加到PATH环境变量中。
 A: 使用标准Maven命令：
 ```bash
 mvn test -pl compatibility-tests/spring-boot-test
+```
+
+**Q: JDK 21测试有什么特殊要求？**
+A: JDK 21测试需要使用JDK 21运行环境：
+```bash
+# 切换到JDK 21
+export JAVA_HOME=/path/to/jdk21
+java -version
+
+# 运行JDK 21测试
+mvn test -pl compatibility-tests/jdk21-test
+
+# 测试完成后切换回JDK 8
+export JAVA_HOME=/path/to/jdk8
+java -version
 ```
 
 **Q: 如何查看详细的Maven输出？**
