@@ -22,7 +22,7 @@ main:
         # 如下镜像为 CNB 默认开发环境镜像，已安装代码服务，将使用单容器模式启动开发环境
         # 可按需替换为其他镜像
         #image: cnbcool/default-dev-env:latest
-        image: docker.cnb.cool/foobar-ai/logx-oss-appender
+        image: docker.cnb.cool/foobar-ai/logx-oss-appender:latest
       services:
         - vscode
         - docker
