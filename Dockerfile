@@ -3,6 +3,9 @@ FROM node:22
 
 WORKDIR /root
 
+# 声明 /cache 为数据卷
+VOLUME /root 
+
 # 安装 ssh 服务，用于支持 JetBrains Gateway/vscode/cursor 等客户端连接
 #RUN apt-get update && apt-get install -y wget unzip openssh-server
 
