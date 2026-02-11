@@ -27,6 +27,7 @@ main:
         - vscode
         - docker
       # 开发环境启动后会执行的任务
+      imports: https://cnb.cool/foobar-ai/envs/-/blob/main/ai-coding/envs.yml
       stages:
         - name: ls
           script: ls -al
