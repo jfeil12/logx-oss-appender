@@ -28,10 +28,14 @@ RUN bash -c "wget -qO- 'https://get.sdkman.io' | bash \
 # 设置 JAVA_HOME 环境变量
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
+
 # 安装 OpenCode AI & openspec
 RUN npm install -g -y opencode-ai@latest @fission-ai/openspec@latest
-# 安装oh-my-opencode插件
-RUN npx -y oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no
+
+# 安装 bun
+RUN curl -fsSL https://bun.sh/install | bash
+# 重新加载 bashrc 并使用 bunx 安装 oh-my-opencode
+RUN bash -c "source /root/.bashrc && bunx oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no"
 
 
 # 安装 Playwright 和 Chromium
