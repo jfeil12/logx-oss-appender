@@ -2,5 +2,208 @@
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
     "oh-my-opencode@latest"
-  ]
+  ],
+  "provider": {
+    "cnb": {
+      "name": "cnb",
+      "options": {
+        "baseURL": "{env:CNB_API_ENDPOINT}/{env:CNB_REPO_SLUG}/-/ai/",
+        "apiKey": "{env:CNB_TOKEN}",
+        "modelListUrl": "{env:CNB_API_ENDPOINT}/{env:CNB_REPO_SLUG}/-/ai/models"
+      },
+      "api": "openai-completions",
+      "models": {
+        "auto": {
+          "name": "cnb-auto",
+        }
+      }
+    },
+    "newapi": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "newapi",
+      "options": {
+        "baseURL": "{env:NEWAPI_BASE_URL}/v1",
+        "apiKey": "{env:NEWAPI_BASE_API_KEY}",
+        "modelListUrl": "{env:NEWAPI_BASE_URL}/v1/models"
+      },
+      "models": {
+        "glm-4.7": {
+          "name": "glm-4.7"
+        },
+        "claude-opus-4-5-20251101": {
+          "name": "claude-opus-4-5-20251101"
+        },
+        "gemini-claude-opus-4-5-thinking": {
+          "name": "Claude Opus 4.5"
+        },
+        "gemini-claude-sonnet-4-5": {
+          "name": "Claude Sonnet 4.5"
+        },
+        "gpt-5.2": {
+          "name": "GPT-5.2",
+          "options": {
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false,
+            "reasoningEffort": "high",
+            "textVerbosity": "high",
+            "reasoningSummary": "auto"
+          }
+        },
+        "gpt-5.3-codex": {
+          "name": "GPT-5.3 Codex",
+          "options": {
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gemini-3-pro-preview": {
+          "name": "Gemini 3 Pro Preview",
+          "limit": {
+            "context": 1048576,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "gemini-3-flash-preview": {
+          "name": "Gemini 3 Flash",
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tui": {
+    "scroll_acceleration": {
+      "enabled": true
+    },
+    "scroll_speed": 3
+  },
+  "mcp": {
+    "serena": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant"
+      ]
+    },
+    "mcp-server-time": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "uvx",
+        "mcp-server-time",
+        "--local-timezone=Asia/Shanghai"
+      ]
+    },
+    "context7": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "{env:CONTEXT7_API_KEY}"
+      ]
+    },
+    "mcp-deepwiki": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "mcp-deepwiki@latest"
+      ]
+    },
+    "fetch": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "uvx",
+        "mcp-server-fetch"
+      ]
+    },
+    "playwright": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ]
+    },
+    "tavily": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "@mcptools/mcp-tavily"
+      ],
+      "environment": {
+        "TAVILY_API_KEY": "{env:TAVILY_API_KEY}"
+      }
+    },
+    "firecrawl-mcp": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "firecrawl-mcp"
+      ],
+      "environment": {
+        "FIRECRAWL_API_KEY": "{env:FIRECRAWL_API_KEY}"
+      }
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "filesystem": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem"
+      ]
+    }
+  }
 }
