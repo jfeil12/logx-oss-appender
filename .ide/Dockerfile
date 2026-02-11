@@ -6,6 +6,17 @@ WORKDIR /root
 # 安装 ssh 服务，用于支持 JetBrains Gateway/vscode/cursor 等客户端连接
 RUN apt-get update && apt-get install -y wget unzip openssh-server
 
+
+# 安装 OpenCode AI & openspec
+RUN npm install -g -y opencode-ai@latest @fission-ai/openspec@latest
+
+
+# 安装 Playwright 和 Chromium
+RUN npm install -g playwright && npx playwright install chromium --with-deps
+
+# 安装 playwright-extra 和 puppeteer-extra-plugin-stealth
+RUN npm install -g playwright-extra puppeteer-extra-plugin-stealth
+
 # 创建 /ide_cnb 目录，用于安装 IDE，注意安装路径必须是这个，便于自动识别环境中支持哪些 ide
 RUN mkdir -p /ide_cnb
 

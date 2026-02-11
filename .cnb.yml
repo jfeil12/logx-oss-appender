@@ -1,4 +1,17 @@
-$:
+main:
+  push:
+    - services:
+        - docker
+      stages:
+        - name: docker build & push
+          script: |
+            docker buildx build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest --push .
+        - name: build knowledge base
+          image: cnbcool/knowledge-base
+          settings:
+            include:
+              - docs/*.md
+              - docs/*.txt
   vscode:
     - docker:
         # 指定开发环境镜像，可以是任意可访问的镜像。
@@ -14,3 +27,18 @@ $:
       stages:
         - name: ls
           script: ls -al
+
+.npc: &npc
+  - runner:
+      cpus: 4
+    docker:
+      image: node:22
+    stages:
+      - name: run openclaw
+        image: docker.cnb.cool/bring/runners/clawdbotrunner
+
+dev:
+  vscode:
+    - services:
+        - vscode
+        - docker
