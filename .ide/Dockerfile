@@ -16,9 +16,9 @@ RUN mkdir -p /ide_cnb
 #     && rm goland-2025.2.5.tar.gz
 
 # IntelliJ IDEA
-RUN wget https://download.jetbrains.com/idea/ideaIU-2025.2.5.tar.gz \
+RUN wget https://download.jetbrains.com/idea/ideaIU-2025.3.tar.gz \
     && tar -zxvf ideaIU-2025.3.tar.gz -C /ide_cnb \
-    && rm ideaIU-2025.2.5.tar.gz
+    && rm ideaIU-2025.3.tar.gz
 
 # PhpStorm
 # RUN wget https://download.jetbrains.com/webide/PhpStorm-2025.2.5.tar.gz \
