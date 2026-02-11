@@ -97,7 +97,6 @@ target/
 .iflow/
 .claude/
 .codex/
-.opencode/
 .roomodes
 dist/
 *.log.gz
