@@ -4,8 +4,10 @@ FROM node:22
 WORKDIR /root
 
 # 安装 ssh 服务，用于支持 JetBrains Gateway/vscode/cursor 等客户端连接
-RUN apt-get update && apt-get install -y wget unzip openssh-server
+RUN apt-get update && apt-get install -y wget unzip openssh-server openjdk-8-jdk maven
 
+# 设置 JAVA_HOME 环境变量
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
 # 安装 OpenCode AI & openspec
 RUN npm install -g -y opencode-ai@latest @fission-ai/openspec@latest
