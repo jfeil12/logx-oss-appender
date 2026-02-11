@@ -4,7 +4,19 @@ FROM node:22
 WORKDIR /root
 
 # 安装 ssh 服务，用于支持 JetBrains Gateway/vscode/cursor 等客户端连接
-RUN apt-get update && apt-get install -y wget unzip openssh-server openjdk-8-jdk maven
+#RUN apt-get update && apt-get install -y wget unzip openssh-server
+
+# 1. 安装SDKMAN依赖（wget/unzip已存在，补充curl用于下载）
+# 2. 安装SDKMAN并初始化
+# 3. 用SDKMAN安装Zulu JDK 8（选LTS版本，如8.0.402-zulu）
+# 4. 安装其他依赖（openssh-server/maven）
+# 5. 清理缓存减小镜像体积
+RUN apt-get update && apt-get install -y wget unzip curl \
+    && wget -qO- "https://get.sdkman.io" | bash \
+    && source "$HOME/.sdkman/bin/sdkman-init.sh" \
+    && sdk install java 8.0.402-zulu --default \
+    && apt-get install -y openssh-server maven \
+    && rm -rf /var/lib/apt/lists/* ~/.sdkman/tmp/*
 
 # 设置 JAVA_HOME 环境变量
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
