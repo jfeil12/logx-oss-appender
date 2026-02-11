@@ -29,7 +29,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 # 安装 OpenCode AI & openspec
 RUN npm install -g -y opencode-ai@latest @fission-ai/openspec@latest
 # 安装oh-my-opencode插件
-npx -y oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no
+RUN npx -y oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no
 
 
 # 安装 Playwright 和 Chromium
