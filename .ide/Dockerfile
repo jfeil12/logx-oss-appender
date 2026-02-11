@@ -17,7 +17,7 @@ RUN mkdir -p /ide_cnb
 
 # IntelliJ IDEA
 RUN wget https://download.jetbrains.com/idea/ideaIU-2025.2.5.tar.gz \
-    && tar -zxvf ideaIU-2025.2.5.tar.gz -C /ide_cnb \
+    && tar -zxvf ideaIU-2025.3.tar.gz -C /ide_cnb \
     && rm ideaIU-2025.2.5.tar.gz
 
 # PhpStorm
