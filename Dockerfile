@@ -11,12 +11,14 @@ WORKDIR /root
 # 3. 用SDKMAN安装Zulu JDK 8（选LTS版本，如8.0.402-zulu）
 # 4. 安装其他依赖（openssh-server/maven）
 # 5. 清理缓存减小镜像体积
-RUN apt-get update && apt-get install -y wget unzip curl zip \
-    && wget -qO- "https://get.sdkman.io" | bash \
-    && source "$HOME/.sdkman/bin/sdkman-init.sh" \
+RUN apt-get update && apt-get install -y wget unzip curl openssh-server zip
+
+# java8 & maven
+RUN bash -c "wget -qO- 'https://get.sdkman.io' | bash \
+    && source \"$HOME/.sdkman/bin/sdkman-init.sh\" \
     && sdk install java 8.0.402-zulu --default \
-    && apt-get install -y openssh-server maven \
-    && rm -rf /var/lib/apt/lists/* ~/.sdkman/tmp/*
+    && apt-get install -y maven \
+    && rm -rf /var/lib/apt/lists/* ~/.sdkman/tmp/*"
 
 # 设置 JAVA_HOME 环境变量
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
