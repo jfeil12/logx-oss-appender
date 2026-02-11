@@ -3,17 +3,22 @@ FROM node:22
 
 WORKDIR /root 
 
+
+# npm镜像加速
+RUN sed -i 's/deb.debian.org/mirrors.cloud.tencent.com/g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's/security.debian.org/mirrors.cloud.tencent.com/g' /etc/apt/sources.list.d/debian.sources && \
+    npm config set registry https://mirrors.cloud.tencent.com/npm/
+
 # 安装 ssh 服务，用于支持 JetBrains Gateway/vscode/cursor 等客户端连接
 #RUN apt-get update && apt-get install -y wget unzip openssh-server
+RUN apt-get update && apt-get install -y wget unzip curl openssh-server zip
 
+# java8 & maven
 # 1. 安装SDKMAN依赖（wget/unzip已存在，补充curl用于下载）
 # 2. 安装SDKMAN并初始化
 # 3. 用SDKMAN安装Zulu JDK 8（选LTS版本，如8.0.462.fx-zulu）
 # 4. 安装其他依赖（openssh-server/maven）
 # 5. 清理缓存减小镜像体积
-RUN apt-get update && apt-get install -y wget unzip curl openssh-server zip
-
-# java8 & maven
 RUN bash -c "wget -qO- 'https://get.sdkman.io' | bash \
     && source \"$HOME/.sdkman/bin/sdkman-init.sh\" \
     && sdk install java 8.0.462.fx-zulu --default \
