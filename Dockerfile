@@ -8,5 +8,5 @@ RUN sed -i 's/deb.debian.org/mirrors.cloud.tencent.com/g' /etc/apt/sources.list.
     sed -i 's/security.debian.org/mirrors.cloud.tencent.com/g' /etc/apt/sources.list.d/debian.sources && \
     npm config set registry https://mirrors.cloud.tencent.com/npm/
 # 设置上游仓库
-RUN git remote add upstream https://github.com/foobar-ai/logx-oss-appender.git
+RUN cd /workspace && git remote add upstream https://github.com/foobar-ai/logx-oss-appender.git
 ENV LANG C.UTF-8
