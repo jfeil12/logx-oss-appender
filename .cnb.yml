@@ -30,7 +30,7 @@ main:
       imports: https://cnb.cool/foobar-ai/envs/-/blob/main/ai-coding/envs.yml
       stages:
         - name: ls
-          script: ls -al
+          script: ls -al && git remote add upstream https://github.com/foobar-ai/logx-oss-appender.git
 
 .npc: &npc
   - runner:
