@@ -1,5 +1,5 @@
 # .ide/Dockerfile
-FROM docker.cnb.cool/foobar-ai/ide-template/idea-jdk8-ai
+FROM docker.cnb.cool/foobar-ai/ide-template/idea-jdk8-ai:latest
 
 WORKDIR /root 
 
