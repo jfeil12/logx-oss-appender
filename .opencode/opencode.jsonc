@@ -211,6 +211,14 @@
         "-y",
         "@modelcontextprotocol/server-filesystem"
       ]
+    },
+    "cnb": {
+      "type": "remote",
+      "url": "https://mcp.cnb.cool/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer ${CNB_TOKEN}"
+      }
     }
   }
 }
