@@ -14,7 +14,9 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -117,16 +119,58 @@ public final class S3StorageServiceAdapter implements StorageService, AutoClosea
 
     @Override
     public CompletableFuture<Void> putObject(String key, byte[] data) {
+        return putObject(key, ByteBuffer.wrap(data));
+    }
+
+    @Override
+    public CompletableFuture<Void> putObject(String key, ByteBuffer buffer) {
         ensureInitialized();
-        
+
+        if (buffer == null) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Buffer cannot be null"));
+            return future;
+        }
+
+        ByteBuffer readOnlyBuffer = buffer.asReadOnlyBuffer();
+        int size = readOnlyBuffer.remaining();
+        try {
+            return doPutObjectInternal(key, RequestBody.fromByteBuffer(readOnlyBuffer), size, readOnlyBuffer);
+        } catch (Exception e) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    public CompletableFuture<Void> putObject(String key, InputStream inputStream, long dataLength) {
+        ensureInitialized();
+
+        if (inputStream == null) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Input stream cannot be null"));
+            return future;
+        }
+        if (dataLength < 0 || dataLength > Integer.MAX_VALUE) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Data length out of range: " + dataLength));
+            return future;
+        }
+
+        try {
+            return doPutObjectInternal(key, RequestBody.fromInputStream(inputStream, dataLength), (int) dataLength, null);
+        } catch (Exception e) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    private CompletableFuture<Void> doPutObjectInternal(String key, RequestBody requestBody, int size, ByteBuffer buffer) {
         if (key == null || key.trim().isEmpty()) {
             CompletableFuture<Void> future = new CompletableFuture<>();
             future.completeExceptionally(new IllegalArgumentException("Key cannot be null or empty"));
-            return future;
-        }
-        if (data == null) {
-            CompletableFuture<Void> future = new CompletableFuture<>();
-            future.completeExceptionally(new IllegalArgumentException("Data cannot be null"));
             return future;
         }
 
@@ -139,14 +183,14 @@ public final class S3StorageServiceAdapter implements StorageService, AutoClosea
             // 设置正确的Content-Type
             String contentType = "text/plain; charset=utf-8";
             // 如果数据是gzip压缩的，设置相应的Content-Type
-            if (data.length > 2 && data[0] == (byte) 0x1f && data[1] == (byte) 0x8b) {
+            if (isGzipContent(buffer)) {
                 contentType = "application/gzip";
             }
 
             PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
-                    .contentLength((long) data.length)
+                    .contentLength((long) size)
                     .contentType(contentType);
 
             // SF S3特殊处理：设置文件有效期元数据，默认保存一年
@@ -158,13 +202,12 @@ public final class S3StorageServiceAdapter implements StorageService, AutoClosea
             }
 
             PutObjectRequest putRequest = requestBuilder.build();
-            RequestBody requestBody = RequestBody.fromBytes(data);
 
             // 同步执行上传（调用方已经在uploadExecutor线程中）
             s3Client.putObject(putRequest, requestBody);
             
             logger.debug("Successfully uploaded object: endpoint={}, bucket={}, key={}, size={} bytes",
-                endpoint, bucketName, key, data.length);
+                endpoint, bucketName, key, size);
             
             return CompletableFuture.completedFuture(null);
             
@@ -181,13 +224,21 @@ public final class S3StorageServiceAdapter implements StorageService, AutoClosea
         } catch (Exception e) {
             // 记录详细的错误信息用于排查
             logger.error("Failed to upload object to S3. Endpoint: {}, Bucket: {}, Key: {}, Size: {} bytes, Error: {}",
-                endpoint, bucketName, key, data.length, e.getMessage());
+                endpoint, bucketName, key, size, e.getMessage());
             // 返回失败的Future，由核心层处理重试和错误处理
             CompletableFuture<Void> future = new CompletableFuture<>();
             future.completeExceptionally(
                 new RuntimeException("Failed to upload object to S3: " + e.getMessage(), e));
             return future;
         }
+    }
+
+    private boolean isGzipContent(ByteBuffer buffer) {
+        if (buffer == null || buffer.remaining() < 2) {
+            return false;
+        }
+        ByteBuffer probe = buffer.asReadOnlyBuffer();
+        return probe.get() == (byte) 0x1f && probe.get() == (byte) 0x8b;
     }
 
     @Override
