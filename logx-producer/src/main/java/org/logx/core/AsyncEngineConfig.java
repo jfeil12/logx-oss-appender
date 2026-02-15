@@ -19,6 +19,9 @@ public class AsyncEngineConfig {
     private String logFileName = "applogx";
     private int fallbackRetentionDays = 7;
     private int fallbackScanIntervalSeconds = 60;
+    private long fallbackMaxRetryFileBytes = 10L * 1024 * 1024;
+    private int fallbackMaxRetryFilesPerRound = 100;
+    private long fallbackMaxRetryBytesPerRound = 50L * 1024 * 1024;
     private int emergencyMemoryThresholdMb = 512;
     private int parallelUploadThreads = 2;
     private long uploadTimeoutMs = 30000L;
@@ -182,6 +185,33 @@ public class AsyncEngineConfig {
 
     public AsyncEngineConfig fallbackScanIntervalSeconds(int fallbackScanIntervalSeconds) {
         this.fallbackScanIntervalSeconds = fallbackScanIntervalSeconds;
+        return this;
+    }
+
+    public long getFallbackMaxRetryFileBytes() {
+        return fallbackMaxRetryFileBytes;
+    }
+
+    public AsyncEngineConfig fallbackMaxRetryFileBytes(long fallbackMaxRetryFileBytes) {
+        this.fallbackMaxRetryFileBytes = Math.max(1L, fallbackMaxRetryFileBytes);
+        return this;
+    }
+
+    public int getFallbackMaxRetryFilesPerRound() {
+        return fallbackMaxRetryFilesPerRound;
+    }
+
+    public AsyncEngineConfig fallbackMaxRetryFilesPerRound(int fallbackMaxRetryFilesPerRound) {
+        this.fallbackMaxRetryFilesPerRound = Math.max(1, fallbackMaxRetryFilesPerRound);
+        return this;
+    }
+
+    public long getFallbackMaxRetryBytesPerRound() {
+        return fallbackMaxRetryBytesPerRound;
+    }
+
+    public AsyncEngineConfig fallbackMaxRetryBytesPerRound(long fallbackMaxRetryBytesPerRound) {
+        this.fallbackMaxRetryBytesPerRound = Math.max(1L, fallbackMaxRetryBytesPerRound);
         return this;
     }
 

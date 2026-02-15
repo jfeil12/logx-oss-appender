@@ -46,6 +46,11 @@ public class AsyncEngineConfigBuilder {
         config.enableMemoryProtection(configManager.getBooleanProperty(CONFIG_PREFIX + "memory.protection.enable", config.isEnableMemoryProtection()));
         config.maxShutdownWaitMs(configManager.getLongProperty(CONFIG_PREFIX + "shutdown.wait.ms", config.getMaxShutdownWaitMs()));
         config.logFileName(configManager.getProperty(CONFIG_PREFIX + "log.file.name", config.getLogFileName()));
+        config.fallbackRetentionDays(configManager.getIntProperty(CONFIG_PREFIX + "fallback.retention.days", config.getFallbackRetentionDays()));
+        config.fallbackScanIntervalSeconds(configManager.getIntProperty(CONFIG_PREFIX + "fallback.scan.interval.seconds", config.getFallbackScanIntervalSeconds()));
+        config.fallbackMaxRetryFileBytes(configManager.getLongProperty(CONFIG_PREFIX + "fallback.max.retry.file.bytes", config.getFallbackMaxRetryFileBytes()));
+        config.fallbackMaxRetryFilesPerRound(configManager.getIntProperty(CONFIG_PREFIX + "fallback.max.retry.files.per.round", config.getFallbackMaxRetryFilesPerRound()));
+        config.fallbackMaxRetryBytesPerRound(configManager.getLongProperty(CONFIG_PREFIX + "fallback.max.retry.bytes.per.round", config.getFallbackMaxRetryBytesPerRound()));
         config.emergencyMemoryThresholdMb(configManager.getIntProperty(CONFIG_PREFIX + "emergency.memory.threshold.mb", config.getEmergencyMemoryThresholdMb()));
         config.uploadTimeoutMs(configManager.getLongProperty("logx.oss.storage.uploadTimeoutMs", config.getUploadTimeoutMs()));
         config.payloadMaxBytes(configManager.getIntProperty(CONFIG_PREFIX + "payload.max.bytes", config.getPayloadMaxBytes()));

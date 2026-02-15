@@ -70,6 +70,11 @@ public class Log4jOSSAppender extends AppenderSkeleton {
             engineConfig.blockOnFull(!properties.getEngine().getQueue().isDropWhenFull());
             engineConfig.uploadTimeoutMs(properties.getStorage().getUploadTimeoutMs());
             engineConfig.payloadMaxBytes(properties.getEngine().getPayloadMaxBytes());
+            engineConfig.fallbackRetentionDays(properties.getEngine().getFallback().getRetentionDays());
+            engineConfig.fallbackScanIntervalSeconds(properties.getEngine().getFallback().getScanIntervalSeconds());
+            engineConfig.fallbackMaxRetryFileBytes(properties.getEngine().getFallback().getMaxRetryFileBytes());
+            engineConfig.fallbackMaxRetryFilesPerRound(properties.getEngine().getFallback().getMaxRetryFilesPerRound());
+            engineConfig.fallbackMaxRetryBytesPerRound(properties.getEngine().getFallback().getMaxRetryBytesPerRound());
 
             this.adapter = new Log4j1xBridge(storageConfig, engineConfig);
             this.adapter.setLayout(layout);

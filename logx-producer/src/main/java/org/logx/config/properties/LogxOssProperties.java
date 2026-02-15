@@ -356,6 +356,9 @@ public class LogxOssProperties {
         private String path = "fallback/logs";
         private int retentionDays = 7;
         private int scanIntervalSeconds = 60;
+        private long maxRetryFileBytes = 10L * 1024 * 1024;
+        private int maxRetryFilesPerRound = 100;
+        private long maxRetryBytesPerRound = 50L * 1024 * 1024;
 
         public String getPath() {
             return path;
@@ -379,6 +382,30 @@ public class LogxOssProperties {
 
         public void setScanIntervalSeconds(int scanIntervalSeconds) {
             this.scanIntervalSeconds = scanIntervalSeconds;
+        }
+
+        public long getMaxRetryFileBytes() {
+            return maxRetryFileBytes;
+        }
+
+        public void setMaxRetryFileBytes(long maxRetryFileBytes) {
+            this.maxRetryFileBytes = maxRetryFileBytes;
+        }
+
+        public int getMaxRetryFilesPerRound() {
+            return maxRetryFilesPerRound;
+        }
+
+        public void setMaxRetryFilesPerRound(int maxRetryFilesPerRound) {
+            this.maxRetryFilesPerRound = maxRetryFilesPerRound;
+        }
+
+        public long getMaxRetryBytesPerRound() {
+            return maxRetryBytesPerRound;
+        }
+
+        public void setMaxRetryBytesPerRound(long maxRetryBytesPerRound) {
+            this.maxRetryBytesPerRound = maxRetryBytesPerRound;
         }
     }
 
