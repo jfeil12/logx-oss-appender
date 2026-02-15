@@ -48,8 +48,19 @@ public class AsyncEngineConfigBuilder {
         config.logFileName(configManager.getProperty(CONFIG_PREFIX + "log.file.name", config.getLogFileName()));
         config.emergencyMemoryThresholdMb(configManager.getIntProperty(CONFIG_PREFIX + "emergency.memory.threshold.mb", config.getEmergencyMemoryThresholdMb()));
         config.uploadTimeoutMs(configManager.getLongProperty("logx.oss.storage.uploadTimeoutMs", config.getUploadTimeoutMs()));
-        config.payloadMaxBytes(configManager.getIntProperty(CONFIG_PREFIX + "payload.max.bytes", config.getPayloadMaxBytes()));
-        
+
+        int payloadMaxBytes = configManager.getIntProperty(CONFIG_PREFIX + "payloadMaxBytes", config.getPayloadMaxBytes());
+        payloadMaxBytes = configManager.getIntProperty(CONFIG_PREFIX + "payload.max.bytes", payloadMaxBytes);
+        config.payloadMaxBytes(payloadMaxBytes);
+
+        String oversizePayloadPolicy = configManager.getProperty(CONFIG_PREFIX + "oversizePayloadPolicy",
+                config.getOversizePayloadPolicy().name());
+        if (oversizePayloadPolicy != null) {
+            config.oversizePayloadPolicy(AsyncEngineConfig.OversizePayloadPolicy.valueOf(oversizePayloadPolicy.trim().toUpperCase()));
+        }
+        config.oversizeFallbackMaxBytes(configManager.getIntProperty(CONFIG_PREFIX + "oversizeFallbackMaxBytes",
+                config.getOversizeFallbackMaxBytes()));
+
         return config;
     }
 }
