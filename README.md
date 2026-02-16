@@ -905,6 +905,22 @@ mvn clean test -pl spring-boot-test
 mvn clean test -pl multi-framework-test
 ```
 
+### 全量集成门禁验证（必须）
+```bash
+# 代码编写完成后，必须执行统一验证入口
+# quick: 快速验证（MinIO核心链路）
+bash scripts/integration-verify.sh quick
+
+# full: 严格全量（MinIO + compatibility-tests/test-runner + jdk21-test）
+# 仅 full 通过才可视为“实现完成”
+bash scripts/integration-verify.sh full
+```
+
+通过标准：
+- quick 模式：MinIO 可用 + MinIOIntegrationTest 通过
+- full 模式：quick 通过 + compatibility-tests/test-runner 通过 + jdk21-test 通过
+- 任一必选项失败或未覆盖：FAIL（不允许进入完成状态）
+
 ### 测试环境要求
 
 - Java 8+

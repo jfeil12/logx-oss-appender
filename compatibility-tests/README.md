@@ -34,6 +34,24 @@ cd compatibility-tests
 mvn clean test -Pcompatibility-tests
 ```
 
+### 统一验证入口（推荐）
+
+在仓库根目录执行：
+
+```bash
+# 快速验证（MinIO核心链路）
+bash scripts/integration-verify.sh quick
+
+# 严格全量验证（MinIO + compatibility-tests/test-runner + jdk21-test）
+bash scripts/integration-verify.sh full
+```
+
+说明：
+- `quick` 适合开发阶段快速确认 MinIO 集成链路。
+- `full` 是交付前强制门禁，未通过则视为未完成。
+- 执行后会产出标准化摘要：
+  `compatibility-tests/target/integration-verify/summary-<timestamp>.md`
+
 ## 测试说明
 
 - **spring-boot-test**: 验证与Spring Boot框架的集成和兼容性
