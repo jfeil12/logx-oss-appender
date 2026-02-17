@@ -321,7 +321,10 @@ public class AsyncEngineImpl implements AsyncEngine, AutoCloseable {
         int fallbackScanIntervalSeconds = config.getFallbackScanIntervalSeconds();
 
         fallbackScheduler.scheduleWithFixedDelay(
-                new FallbackUploaderTask(storageService, config.getLogFilePrefix(), config.getLogFileName(), fallbackRetentionDays),
+                new FallbackUploaderTask(storageService, config.getLogFilePrefix(), config.getLogFileName(), fallbackRetentionDays,
+                        config.getFallbackMaxRetryFileBytes(),
+                        config.getFallbackMaxRetryFilesPerRound(),
+                        config.getFallbackMaxRetryBytesPerRound()),
                 1, fallbackScanIntervalSeconds, TimeUnit.SECONDS
         );
     }

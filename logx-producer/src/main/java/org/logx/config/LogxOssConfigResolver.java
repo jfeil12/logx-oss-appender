@@ -83,6 +83,9 @@ public class LogxOssConfigResolver {
         fallback.setPath(resolve(configManager.getProperty("logx.oss.engine.fallback.path", fallback.getPath())));
         fallback.setRetentionDays(configManager.getIntProperty("logx.oss.engine.fallback.retentionDays", fallback.getRetentionDays()));
         fallback.setScanIntervalSeconds(configManager.getIntProperty("logx.oss.engine.fallback.scanIntervalSeconds", fallback.getScanIntervalSeconds()));
+        fallback.setMaxRetryFileBytes(configManager.getLongProperty("logx.oss.engine.fallback.maxRetryFileBytes", fallback.getMaxRetryFileBytes()));
+        fallback.setMaxRetryFilesPerRound(configManager.getIntProperty("logx.oss.engine.fallback.maxRetryFilesPerRound", fallback.getMaxRetryFilesPerRound()));
+        fallback.setMaxRetryBytesPerRound(configManager.getLongProperty("logx.oss.engine.fallback.maxRetryBytesPerRound", fallback.getMaxRetryBytesPerRound()));
     }
 
     private void resolveThreadPool(LogxOssProperties.ThreadPool threadPool) {
