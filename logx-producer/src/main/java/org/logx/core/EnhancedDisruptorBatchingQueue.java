@@ -3,7 +3,6 @@ package org.logx.core;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.YieldingWaitStrategy;
 import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
@@ -14,17 +13,20 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.CRC32;
 
 public final class EnhancedDisruptorBatchingQueue implements AutoCloseable {
 
@@ -509,9 +511,10 @@ public final class EnhancedDisruptorBatchingQueue implements AutoCloseable {
     }
 
     private boolean processSharding(byte[] data) {
-        java.util.List<CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        List<CompletableFuture<Void>> windowFutures = new ArrayList<>();
         try {
-            int shardCount = (int) Math.ceil((double) data.length / config.getShardSize());
+            int shardSize = config.getShardSize();
+            int shardCount = (int) Math.ceil((double) data.length / shardSize);
 
             if (shardCount <= 1) {
                 return consumer.processBatch(data, data.length, false, 1);
@@ -521,35 +524,48 @@ public final class EnhancedDisruptorBatchingQueue implements AutoCloseable {
                 logger.warn("Shard executor not configured, falling back to synchronous upload on consumer thread");
             }
 
+            int maxConcurrentUploads = config.getMaxConcurrentShardUploads();
+            long overallDeadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(uploadTimeoutMs);
+            Executor executor = shardExecutor != null
+                    ? shardExecutor
+                    : java.util.concurrent.ForkJoinPool.commonPool();
+            Semaphore uploadSlots = new Semaphore(maxConcurrentUploads);
+
             for (int i = 0; i < shardCount; i++) {
-                int start = i * config.getShardSize();
-                int end = Math.min(start + config.getShardSize(), data.length);
-                int length = end - start;
-
-                byte[] shardData = new byte[length];
-                System.arraycopy(data, start, shardData, 0, length);
-
-                byte[] finalShardData = config.enableCompression ? compressData(shardData) : shardData;
+                int start = i * shardSize;
+                int length = Math.min(shardSize, data.length - start);
                 String shardKey = ObjectNameGenerator.generateObjectName(storageService.getKeyPrefix());
                 totalShardsCreated.incrementAndGet();
+                ByteBuffer shardBuffer = ByteBuffer.wrap(data, start, length).slice();
 
-                java.util.concurrent.Executor executor = shardExecutor != null
-                        ? shardExecutor
-                        : java.util.concurrent.ForkJoinPool.commonPool();
+                waitForWindowSlot(uploadSlots, windowFutures, overallDeadlineNanos);
 
                 CompletableFuture<Void> uploadFuture = CompletableFuture.runAsync(() -> {
                     try {
-                        storageService.putObject(shardKey, finalShardData).get(uploadTimeoutMs, TimeUnit.MILLISECONDS);
+                        long remainingMs = getRemainingMs(overallDeadlineNanos);
+                        if (remainingMs <= 0) {
+                            throw new java.util.concurrent.TimeoutException("Sharding process reached overall deadline");
+                        }
+
+                        long perShardTimeoutMs = Math.min(uploadTimeoutMs, remainingMs);
+                        ByteBuffer uploadBuffer = shardBuffer.asReadOnlyBuffer();
+                        ByteBuffer payloadBuffer = config.enableCompression
+                                ? ByteBuffer.wrap(compressData(uploadBuffer))
+                                : uploadBuffer;
+
+                        storageService.putObject(shardKey, payloadBuffer)
+                                .get(perShardTimeoutMs, TimeUnit.MILLISECONDS);
                     } catch (Exception ex) {
                         throw new RuntimeException("Shard upload failed for key " + shardKey, ex);
+                    } finally {
+                        uploadSlots.release();
                     }
                 }, executor);
 
-                futures.add(uploadFuture);
+                windowFutures.add(uploadFuture);
             }
 
-            CompletableFuture<Void> all = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-            all.get(uploadTimeoutMs, TimeUnit.MILLISECONDS);
+            waitAllWindowFutures(windowFutures, overallDeadlineNanos);
             return true;
         } catch (InterruptedException e) {
             logger.error("Sharding process interrupted: {}", e.getMessage());
@@ -557,13 +573,84 @@ public final class EnhancedDisruptorBatchingQueue implements AutoCloseable {
             return false;
         } catch (java.util.concurrent.TimeoutException e) {
             logger.error("Sharding process timeout after {} ms", uploadTimeoutMs);
-            futures.forEach(f -> f.cancel(true));
+            windowFutures.forEach(future -> future.cancel(true));
             return false;
         } catch (Exception e) {
             logger.error("Sharding process failed: {}", e.getMessage(), e);
-            futures.forEach(f -> f.cancel(true));
+            windowFutures.forEach(future -> future.cancel(true));
             return false;
         }
+    }
+
+    private void waitForWindowSlot(Semaphore uploadSlots,
+                                   List<CompletableFuture<Void>> windowFutures,
+                                   long overallDeadlineNanos) throws Exception {
+        while (!uploadSlots.tryAcquire(50, TimeUnit.MILLISECONDS)) {
+            if (getRemainingMs(overallDeadlineNanos) <= 0) {
+                throw new java.util.concurrent.TimeoutException("Sharding process reached overall deadline");
+            }
+            drainCompletedFutures(windowFutures);
+        }
+        drainCompletedFutures(windowFutures);
+    }
+
+    private void drainCompletedFutures(List<CompletableFuture<Void>> windowFutures) throws Exception {
+        for (int i = windowFutures.size() - 1; i >= 0; i--) {
+            CompletableFuture<Void> future = windowFutures.get(i);
+            if (future.isDone()) {
+                windowFutures.remove(i);
+                getFutureResult(future);
+            }
+        }
+    }
+
+    private void waitAllWindowFutures(List<CompletableFuture<Void>> windowFutures, long overallDeadlineNanos)
+            throws Exception {
+        while (!windowFutures.isEmpty()) {
+            if (getRemainingMs(overallDeadlineNanos) <= 0) {
+                throw new java.util.concurrent.TimeoutException("Sharding process reached overall deadline");
+            }
+            drainCompletedFutures(windowFutures);
+            if (!windowFutures.isEmpty()) {
+                Thread.sleep(10L);
+            }
+        }
+    }
+
+    private void getFutureResult(CompletableFuture<Void> future) throws Exception {
+        try {
+            future.get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) {
+                throw (Exception) cause;
+            }
+            throw new RuntimeException(cause);
+        }
+    }
+
+    private long getRemainingMs(long overallDeadlineNanos) {
+        long remainingNanos = overallDeadlineNanos - System.nanoTime();
+        return TimeUnit.NANOSECONDS.toMillis(Math.max(0L, remainingNanos));
+    }
+
+    private byte[] compressData(ByteBuffer dataBuffer) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzos = new GZIPOutputStream(baos)) {
+            if (dataBuffer.hasArray()) {
+                int offset = dataBuffer.arrayOffset() + dataBuffer.position();
+                gzos.write(dataBuffer.array(), offset, dataBuffer.remaining());
+            } else {
+                ByteBuffer readBuffer = dataBuffer.asReadOnlyBuffer();
+                byte[] chunk = new byte[Math.min(8192, readBuffer.remaining())];
+                while (readBuffer.hasRemaining()) {
+                    int read = Math.min(chunk.length, readBuffer.remaining());
+                    readBuffer.get(chunk, 0, read);
+                    gzos.write(chunk, 0, read);
+                }
+            }
+        }
+        return baos.toByteArray();
     }
 
     public void setShardExecutor(java.util.concurrent.ExecutorService shardExecutor, long uploadTimeoutMs) {
@@ -603,6 +690,7 @@ public final class EnhancedDisruptorBatchingQueue implements AutoCloseable {
         private boolean enableSharding = true;
         private int maxUploadSizeMb = 10;
         private int consumerThreadCount = 1;
+        private int maxConcurrentShardUploads = 4;
         private java.util.concurrent.ExecutorService shardExecutor;
         private long uploadTimeoutMs = 30000L;
 
@@ -660,6 +748,11 @@ public final class EnhancedDisruptorBatchingQueue implements AutoCloseable {
             return this;
         }
 
+        public Config maxConcurrentShardUploads(int maxConcurrentShardUploads) {
+            this.maxConcurrentShardUploads = Math.max(1, Math.min(64, maxConcurrentShardUploads));
+            return this;
+        }
+
         public Config shardExecutor(java.util.concurrent.ExecutorService shardExecutor) {
             this.shardExecutor = shardExecutor;
             return this;
@@ -708,6 +801,10 @@ public final class EnhancedDisruptorBatchingQueue implements AutoCloseable {
 
         public int getConsumerThreadCount() {
             return consumerThreadCount;
+        }
+
+        public int getMaxConcurrentShardUploads() {
+            return maxConcurrentShardUploads;
         }
 
         public int getShardingThreshold() {

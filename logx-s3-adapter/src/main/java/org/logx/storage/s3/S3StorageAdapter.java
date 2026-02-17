@@ -12,6 +12,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -94,16 +96,54 @@ public final class S3StorageAdapter implements StorageInterface, AutoCloseable {
 
     @Override
     public CompletableFuture<Void> putObject(String key, byte[] data) {
-        if (key == null || key.trim().isEmpty()) {
-            CompletableFuture<Void> future = new CompletableFuture<>();
-            future.completeExceptionally(new IllegalArgumentException("Key cannot be null or empty"));
-            return future;
-        }
         if (data == null) {
             CompletableFuture<Void> future = new CompletableFuture<>();
             future.completeExceptionally(new IllegalArgumentException("Data cannot be null"));
             return future;
         }
+        return putObject(key, ByteBuffer.wrap(data));
+    }
+
+    @Override
+    public CompletableFuture<Void> putObject(String key, ByteBuffer buffer) {
+        if (key == null || key.trim().isEmpty()) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Key cannot be null or empty"));
+            return future;
+        }
+        if (buffer == null) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Buffer cannot be null"));
+            return future;
+        }
+
+        ByteBuffer readOnlyBuffer = buffer.asReadOnlyBuffer();
+        return putObjectInternal(key, RequestBody.fromByteBuffer(readOnlyBuffer), readOnlyBuffer.remaining());
+    }
+
+    @Override
+    public CompletableFuture<Void> putObject(String key, InputStream inputStream, long dataLength) {
+        if (key == null || key.trim().isEmpty()) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Key cannot be null or empty"));
+            return future;
+        }
+        if (inputStream == null) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Input stream cannot be null"));
+            return future;
+        }
+
+        if (dataLength < 0 || dataLength > Integer.MAX_VALUE) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Data length out of range: " + dataLength));
+            return future;
+        }
+
+        return putObjectInternal(key, RequestBody.fromInputStream(inputStream, dataLength), (int) dataLength);
+    }
+
+    private CompletableFuture<Void> putObjectInternal(String key, RequestBody requestBody, int dataLength) {
 
         // ObjectNameGenerator已经生成完整路径，直接使用
         // 执行标准上传，不处理分片和重试，这些由核心层处理
@@ -111,10 +151,8 @@ public final class S3StorageAdapter implements StorageInterface, AutoCloseable {
             PutObjectRequest putRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
-                    .contentLength((long) data.length)
+                    .contentLength((long) dataLength)
                     .build();
-
-            RequestBody requestBody = RequestBody.fromBytes(data);
             
             try {
                 s3Client.putObject(putRequest, requestBody);
