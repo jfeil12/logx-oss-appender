@@ -2,6 +2,11 @@ package org.logx.core;
 
 public class AsyncEngineConfig {
 
+    public enum OversizePayloadPolicy {
+        DROP,
+        FALLBACK_FILE
+    }
+
     private boolean enabled = true;
     private int queueCapacity = 524288;
     private int batchMaxMessages = 8192;
@@ -30,6 +35,8 @@ public class AsyncEngineConfig {
     private double highPressureThreshold = 0.8;
     private double lowPressureThreshold = 0.3;
     private int payloadMaxBytes = 512 * 1024;
+    private OversizePayloadPolicy oversizePayloadPolicy = OversizePayloadPolicy.DROP;
+    private int oversizeFallbackMaxBytes = 10 * 1024 * 1024;
 
     public static AsyncEngineConfig defaultConfig() {
         return new AsyncEngineConfig();
@@ -284,6 +291,28 @@ public class AsyncEngineConfig {
 
     public AsyncEngineConfig payloadMaxBytes(int payloadMaxBytes) {
         this.payloadMaxBytes = payloadMaxBytes;
+        return this;
+    }
+
+    public OversizePayloadPolicy getOversizePayloadPolicy() {
+        return oversizePayloadPolicy;
+    }
+
+    public AsyncEngineConfig oversizePayloadPolicy(OversizePayloadPolicy oversizePayloadPolicy) {
+        if (oversizePayloadPolicy == null) {
+            this.oversizePayloadPolicy = OversizePayloadPolicy.DROP;
+        } else {
+            this.oversizePayloadPolicy = oversizePayloadPolicy;
+        }
+        return this;
+    }
+
+    public int getOversizeFallbackMaxBytes() {
+        return oversizeFallbackMaxBytes;
+    }
+
+    public AsyncEngineConfig oversizeFallbackMaxBytes(int oversizeFallbackMaxBytes) {
+        this.oversizeFallbackMaxBytes = Math.max(1, oversizeFallbackMaxBytes);
         return this;
     }
 

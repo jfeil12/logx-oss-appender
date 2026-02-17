@@ -1,5 +1,7 @@
 package org.logx.config.properties;
 
+import org.logx.core.AsyncEngineConfig;
+
 public class LogxOssProperties {
 
     private boolean enabled = true;
@@ -219,6 +221,8 @@ public class LogxOssProperties {
         private boolean enableSharding = true;
         private int maxUploadSizeMb = 10;
         private int payloadMaxBytes = 512 * 1024;
+        private AsyncEngineConfig.OversizePayloadPolicy oversizePayloadPolicy = AsyncEngineConfig.OversizePayloadPolicy.DROP;
+        private int oversizeFallbackMaxBytes = 10 * 1024 * 1024;
 
         public Batch getBatch() {
             return batch;
@@ -346,6 +350,22 @@ public class LogxOssProperties {
 
         public void setPayloadMaxBytes(int payloadMaxBytes) {
             this.payloadMaxBytes = payloadMaxBytes;
+        }
+
+        public AsyncEngineConfig.OversizePayloadPolicy getOversizePayloadPolicy() {
+            return oversizePayloadPolicy;
+        }
+
+        public void setOversizePayloadPolicy(AsyncEngineConfig.OversizePayloadPolicy oversizePayloadPolicy) {
+            this.oversizePayloadPolicy = oversizePayloadPolicy;
+        }
+
+        public int getOversizeFallbackMaxBytes() {
+            return oversizeFallbackMaxBytes;
+        }
+
+        public void setOversizeFallbackMaxBytes(int oversizeFallbackMaxBytes) {
+            this.oversizeFallbackMaxBytes = oversizeFallbackMaxBytes;
         }
     }
 
