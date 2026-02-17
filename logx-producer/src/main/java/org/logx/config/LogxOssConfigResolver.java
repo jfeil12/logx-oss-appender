@@ -1,6 +1,7 @@
 package org.logx.config;
 
 import org.logx.config.properties.LogxOssProperties;
+import org.logx.core.AsyncEngineConfig;
 
 public class LogxOssConfigResolver {
 
@@ -100,5 +101,11 @@ public class LogxOssConfigResolver {
         engine.setCompressionThreshold(configManager.getIntProperty("logx.oss.engine.compressionThreshold", engine.getCompressionThreshold()));
         engine.setEnableSharding(configManager.getBooleanProperty("logx.oss.engine.enableSharding", engine.isEnableSharding()));
         engine.setMaxUploadSizeMb(configManager.getIntProperty("logx.oss.engine.maxUploadSizeMb", engine.getMaxUploadSizeMb()));
+        engine.setPayloadMaxBytes(configManager.getIntProperty("logx.oss.engine.payloadMaxBytes", engine.getPayloadMaxBytes()));
+        String oversizePolicy = configManager.getProperty("logx.oss.engine.oversizePayloadPolicy", engine.getOversizePayloadPolicy().name());
+        if (oversizePolicy != null) {
+            engine.setOversizePayloadPolicy(AsyncEngineConfig.OversizePayloadPolicy.valueOf(oversizePolicy.trim().toUpperCase()));
+        }
+        engine.setOversizeFallbackMaxBytes(configManager.getIntProperty("logx.oss.engine.oversizeFallbackMaxBytes", engine.getOversizeFallbackMaxBytes()));
     }
 }
