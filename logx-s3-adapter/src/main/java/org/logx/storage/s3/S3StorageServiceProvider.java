@@ -3,6 +3,9 @@ package org.logx.storage.s3;
 import org.logx.storage.ProtocolType;
 import org.logx.storage.StorageConfig;
 import org.logx.storage.StorageService;
+
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -33,6 +36,18 @@ public class S3StorageServiceProvider implements StorageService {
     public CompletableFuture<Void> putObject(String key, byte[] data) {
         ensureInitialized();
         return adapter.putObject(key, data);
+    }
+
+    @Override
+    public CompletableFuture<Void> putObject(String key, InputStream inputStream, long dataLength) {
+        ensureInitialized();
+        return adapter.putObject(key, inputStream, dataLength);
+    }
+
+    @Override
+    public CompletableFuture<Void> putObject(String key, ByteBuffer buffer) {
+        ensureInitialized();
+        return adapter.putObject(key, buffer);
     }
 
     @Override

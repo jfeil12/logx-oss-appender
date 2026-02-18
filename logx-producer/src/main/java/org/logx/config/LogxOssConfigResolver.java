@@ -1,6 +1,7 @@
 package org.logx.config;
 
 import org.logx.config.properties.LogxOssProperties;
+import org.logx.core.AsyncEngineConfig;
 
 public class LogxOssConfigResolver {
 
@@ -82,6 +83,9 @@ public class LogxOssConfigResolver {
         fallback.setPath(resolve(configManager.getProperty("logx.oss.engine.fallback.path", fallback.getPath())));
         fallback.setRetentionDays(configManager.getIntProperty("logx.oss.engine.fallback.retentionDays", fallback.getRetentionDays()));
         fallback.setScanIntervalSeconds(configManager.getIntProperty("logx.oss.engine.fallback.scanIntervalSeconds", fallback.getScanIntervalSeconds()));
+        fallback.setMaxRetryFileBytes(configManager.getLongProperty("logx.oss.engine.fallback.maxRetryFileBytes", fallback.getMaxRetryFileBytes()));
+        fallback.setMaxRetryFilesPerRound(configManager.getIntProperty("logx.oss.engine.fallback.maxRetryFilesPerRound", fallback.getMaxRetryFilesPerRound()));
+        fallback.setMaxRetryBytesPerRound(configManager.getLongProperty("logx.oss.engine.fallback.maxRetryBytesPerRound", fallback.getMaxRetryBytesPerRound()));
     }
 
     private void resolveThreadPool(LogxOssProperties.ThreadPool threadPool) {
@@ -100,5 +104,11 @@ public class LogxOssConfigResolver {
         engine.setCompressionThreshold(configManager.getIntProperty("logx.oss.engine.compressionThreshold", engine.getCompressionThreshold()));
         engine.setEnableSharding(configManager.getBooleanProperty("logx.oss.engine.enableSharding", engine.isEnableSharding()));
         engine.setMaxUploadSizeMb(configManager.getIntProperty("logx.oss.engine.maxUploadSizeMb", engine.getMaxUploadSizeMb()));
+        engine.setPayloadMaxBytes(configManager.getIntProperty("logx.oss.engine.payloadMaxBytes", engine.getPayloadMaxBytes()));
+        String oversizePolicy = configManager.getProperty("logx.oss.engine.oversizePayloadPolicy", engine.getOversizePayloadPolicy().name());
+        if (oversizePolicy != null) {
+            engine.setOversizePayloadPolicy(AsyncEngineConfig.OversizePayloadPolicy.valueOf(oversizePolicy.trim().toUpperCase()));
+        }
+        engine.setOversizeFallbackMaxBytes(configManager.getIntProperty("logx.oss.engine.oversizeFallbackMaxBytes", engine.getOversizeFallbackMaxBytes()));
     }
 }

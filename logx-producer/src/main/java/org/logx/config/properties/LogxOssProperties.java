@@ -1,5 +1,7 @@
 package org.logx.config.properties;
 
+import org.logx.core.AsyncEngineConfig;
+
 public class LogxOssProperties {
 
     private boolean enabled = true;
@@ -219,6 +221,8 @@ public class LogxOssProperties {
         private boolean enableSharding = true;
         private int maxUploadSizeMb = 10;
         private int payloadMaxBytes = 512 * 1024;
+        private AsyncEngineConfig.OversizePayloadPolicy oversizePayloadPolicy = AsyncEngineConfig.OversizePayloadPolicy.DROP;
+        private int oversizeFallbackMaxBytes = 10 * 1024 * 1024;
 
         public Batch getBatch() {
             return batch;
@@ -347,6 +351,22 @@ public class LogxOssProperties {
         public void setPayloadMaxBytes(int payloadMaxBytes) {
             this.payloadMaxBytes = payloadMaxBytes;
         }
+
+        public AsyncEngineConfig.OversizePayloadPolicy getOversizePayloadPolicy() {
+            return oversizePayloadPolicy;
+        }
+
+        public void setOversizePayloadPolicy(AsyncEngineConfig.OversizePayloadPolicy oversizePayloadPolicy) {
+            this.oversizePayloadPolicy = oversizePayloadPolicy;
+        }
+
+        public int getOversizeFallbackMaxBytes() {
+            return oversizeFallbackMaxBytes;
+        }
+
+        public void setOversizeFallbackMaxBytes(int oversizeFallbackMaxBytes) {
+            this.oversizeFallbackMaxBytes = oversizeFallbackMaxBytes;
+        }
     }
 
     /**
@@ -356,6 +376,9 @@ public class LogxOssProperties {
         private String path = "fallback/logs";
         private int retentionDays = 7;
         private int scanIntervalSeconds = 60;
+        private long maxRetryFileBytes = 10L * 1024 * 1024;
+        private int maxRetryFilesPerRound = 100;
+        private long maxRetryBytesPerRound = 50L * 1024 * 1024;
 
         public String getPath() {
             return path;
@@ -379,6 +402,30 @@ public class LogxOssProperties {
 
         public void setScanIntervalSeconds(int scanIntervalSeconds) {
             this.scanIntervalSeconds = scanIntervalSeconds;
+        }
+
+        public long getMaxRetryFileBytes() {
+            return maxRetryFileBytes;
+        }
+
+        public void setMaxRetryFileBytes(long maxRetryFileBytes) {
+            this.maxRetryFileBytes = maxRetryFileBytes;
+        }
+
+        public int getMaxRetryFilesPerRound() {
+            return maxRetryFilesPerRound;
+        }
+
+        public void setMaxRetryFilesPerRound(int maxRetryFilesPerRound) {
+            this.maxRetryFilesPerRound = maxRetryFilesPerRound;
+        }
+
+        public long getMaxRetryBytesPerRound() {
+            return maxRetryBytesPerRound;
+        }
+
+        public void setMaxRetryBytesPerRound(long maxRetryBytesPerRound) {
+            this.maxRetryBytesPerRound = maxRetryBytesPerRound;
         }
     }
 

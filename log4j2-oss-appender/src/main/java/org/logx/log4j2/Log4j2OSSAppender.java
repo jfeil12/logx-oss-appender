@@ -95,6 +95,14 @@ public final class Log4j2OSSAppender extends AbstractAppender {
             engineConfig.uploadTimeoutMs(properties.getStorage().getUploadTimeoutMs());
             engineConfig.payloadMaxBytes(properties.getEngine().getPayloadMaxBytes());
 
+            engineConfig.fallbackRetentionDays(properties.getEngine().getFallback().getRetentionDays());
+            engineConfig.fallbackScanIntervalSeconds(properties.getEngine().getFallback().getScanIntervalSeconds());
+            engineConfig.fallbackMaxRetryFileBytes(properties.getEngine().getFallback().getMaxRetryFileBytes());
+            engineConfig.fallbackMaxRetryFilesPerRound(properties.getEngine().getFallback().getMaxRetryFilesPerRound());
+            engineConfig.fallbackMaxRetryBytesPerRound(properties.getEngine().getFallback().getMaxRetryBytesPerRound());
+            engineConfig.oversizePayloadPolicy(properties.getEngine().getOversizePayloadPolicy());
+            engineConfig.oversizeFallbackMaxBytes(properties.getEngine().getOversizeFallbackMaxBytes());
+
             this.adapter = new Log4j2Bridge(storageConfig, engineConfig);
             this.adapter.setLayout(getLayout());
             this.adapter.start();
@@ -134,6 +142,15 @@ public final class Log4j2OSSAppender extends AbstractAppender {
         xmlConfig.computeIfPresent("logx.oss.engine.retry.baseBackoffMs", (k, v) -> { properties.getEngine().getRetry().setBaseBackoffMs(Long.parseLong(v)); return v; });
         xmlConfig.computeIfPresent("logx.oss.engine.retry.maxBackoffMs", (k, v) -> { properties.getEngine().getRetry().setMaxBackoffMs(Long.parseLong(v)); return v; });
         xmlConfig.computeIfPresent("logx.oss.engine.payload.maxBytes", (k, v) -> { properties.getEngine().setPayloadMaxBytes(Integer.parseInt(v)); return v; });
+        xmlConfig.computeIfPresent("logx.oss.engine.payloadMaxBytes", (k, v) -> { properties.getEngine().setPayloadMaxBytes(Integer.parseInt(v)); return v; });
+        xmlConfig.computeIfPresent("logx.oss.engine.oversizePayloadPolicy", (k, v) -> {
+            properties.getEngine().setOversizePayloadPolicy(AsyncEngineConfig.OversizePayloadPolicy.valueOf(v.trim().toUpperCase()));
+            return v;
+        });
+        xmlConfig.computeIfPresent("logx.oss.engine.oversizeFallbackMaxBytes", (k, v) -> {
+            properties.getEngine().setOversizeFallbackMaxBytes(Integer.parseInt(v));
+            return v;
+        });
     }
 
     @Override

@@ -83,8 +83,15 @@ public final class LogbackOSSAppender extends AppenderBase<ILoggingEvent> {
             engineConfig.batchMaxBytes(properties.getEngine().getBatch().getBytes());
             engineConfig.maxMessageAgeMs(properties.getEngine().getBatch().getMaxAgeMs());
             engineConfig.blockOnFull(!properties.getEngine().getQueue().isDropWhenFull());
-             engineConfig.uploadTimeoutMs(properties.getStorage().getUploadTimeoutMs());
+            engineConfig.uploadTimeoutMs(properties.getStorage().getUploadTimeoutMs());
             engineConfig.payloadMaxBytes(properties.getEngine().getPayloadMaxBytes());
+            engineConfig.fallbackRetentionDays(properties.getEngine().getFallback().getRetentionDays());
+            engineConfig.fallbackScanIntervalSeconds(properties.getEngine().getFallback().getScanIntervalSeconds());
+            engineConfig.fallbackMaxRetryFileBytes(properties.getEngine().getFallback().getMaxRetryFileBytes());
+            engineConfig.fallbackMaxRetryFilesPerRound(properties.getEngine().getFallback().getMaxRetryFilesPerRound());
+            engineConfig.fallbackMaxRetryBytesPerRound(properties.getEngine().getFallback().getMaxRetryBytesPerRound());
+            engineConfig.oversizePayloadPolicy(properties.getEngine().getOversizePayloadPolicy());
+            engineConfig.oversizeFallbackMaxBytes(properties.getEngine().getOversizeFallbackMaxBytes());
 
             this.adapter = new LogbackBridge(storageConfig, engineConfig);
             this.adapter.setEncoder(encoder);
@@ -162,6 +169,17 @@ public final class LogbackOSSAppender extends AppenderBase<ILoggingEvent> {
         }
         if (xmlConfig.containsKey("logx.oss.engine.payload.maxBytes")) {
             properties.getEngine().setPayloadMaxBytes(Integer.parseInt(xmlConfig.get("logx.oss.engine.payload.maxBytes")));
+        }
+        if (xmlConfig.containsKey("logx.oss.engine.payloadMaxBytes")) {
+            properties.getEngine().setPayloadMaxBytes(Integer.parseInt(xmlConfig.get("logx.oss.engine.payloadMaxBytes")));
+        }
+        if (xmlConfig.containsKey("logx.oss.engine.oversizePayloadPolicy")) {
+            properties.getEngine().setOversizePayloadPolicy(AsyncEngineConfig.OversizePayloadPolicy
+                    .valueOf(xmlConfig.get("logx.oss.engine.oversizePayloadPolicy").trim().toUpperCase()));
+        }
+        if (xmlConfig.containsKey("logx.oss.engine.oversizeFallbackMaxBytes")) {
+            properties.getEngine().setOversizeFallbackMaxBytes(
+                    Integer.parseInt(xmlConfig.get("logx.oss.engine.oversizeFallbackMaxBytes")));
         }
     }
 

@@ -2,6 +2,11 @@ package org.logx.core;
 
 public class AsyncEngineConfig {
 
+    public enum OversizePayloadPolicy {
+        DROP,
+        FALLBACK_FILE
+    }
+
     private boolean enabled = true;
     private int queueCapacity = 524288;
     private int batchMaxMessages = 8192;
@@ -19,6 +24,9 @@ public class AsyncEngineConfig {
     private String logFileName = "applogx";
     private int fallbackRetentionDays = 7;
     private int fallbackScanIntervalSeconds = 60;
+    private long fallbackMaxRetryFileBytes = 10L * 1024 * 1024;
+    private int fallbackMaxRetryFilesPerRound = 100;
+    private long fallbackMaxRetryBytesPerRound = 50L * 1024 * 1024;
     private int emergencyMemoryThresholdMb = 512;
     private int parallelUploadThreads = 2;
     private long uploadTimeoutMs = 30000L;
@@ -27,6 +35,8 @@ public class AsyncEngineConfig {
     private double highPressureThreshold = 0.8;
     private double lowPressureThreshold = 0.3;
     private int payloadMaxBytes = 512 * 1024;
+    private OversizePayloadPolicy oversizePayloadPolicy = OversizePayloadPolicy.DROP;
+    private int oversizeFallbackMaxBytes = 10 * 1024 * 1024;
 
     public static AsyncEngineConfig defaultConfig() {
         return new AsyncEngineConfig();
@@ -185,6 +195,33 @@ public class AsyncEngineConfig {
         return this;
     }
 
+    public long getFallbackMaxRetryFileBytes() {
+        return fallbackMaxRetryFileBytes;
+    }
+
+    public AsyncEngineConfig fallbackMaxRetryFileBytes(long fallbackMaxRetryFileBytes) {
+        this.fallbackMaxRetryFileBytes = Math.max(1L, fallbackMaxRetryFileBytes);
+        return this;
+    }
+
+    public int getFallbackMaxRetryFilesPerRound() {
+        return fallbackMaxRetryFilesPerRound;
+    }
+
+    public AsyncEngineConfig fallbackMaxRetryFilesPerRound(int fallbackMaxRetryFilesPerRound) {
+        this.fallbackMaxRetryFilesPerRound = Math.max(1, fallbackMaxRetryFilesPerRound);
+        return this;
+    }
+
+    public long getFallbackMaxRetryBytesPerRound() {
+        return fallbackMaxRetryBytesPerRound;
+    }
+
+    public AsyncEngineConfig fallbackMaxRetryBytesPerRound(long fallbackMaxRetryBytesPerRound) {
+        this.fallbackMaxRetryBytesPerRound = Math.max(1L, fallbackMaxRetryBytesPerRound);
+        return this;
+    }
+
     public int getEmergencyMemoryThresholdMb() {
         return emergencyMemoryThresholdMb;
     }
@@ -254,6 +291,28 @@ public class AsyncEngineConfig {
 
     public AsyncEngineConfig payloadMaxBytes(int payloadMaxBytes) {
         this.payloadMaxBytes = payloadMaxBytes;
+        return this;
+    }
+
+    public OversizePayloadPolicy getOversizePayloadPolicy() {
+        return oversizePayloadPolicy;
+    }
+
+    public AsyncEngineConfig oversizePayloadPolicy(OversizePayloadPolicy oversizePayloadPolicy) {
+        if (oversizePayloadPolicy == null) {
+            this.oversizePayloadPolicy = OversizePayloadPolicy.DROP;
+        } else {
+            this.oversizePayloadPolicy = oversizePayloadPolicy;
+        }
+        return this;
+    }
+
+    public int getOversizeFallbackMaxBytes() {
+        return oversizeFallbackMaxBytes;
+    }
+
+    public AsyncEngineConfig oversizeFallbackMaxBytes(int oversizeFallbackMaxBytes) {
+        this.oversizeFallbackMaxBytes = Math.max(1, oversizeFallbackMaxBytes);
         return this;
     }
 

@@ -33,6 +33,8 @@ public class AsyncEngineImpl implements AsyncEngine, AutoCloseable {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean stopped = new AtomicBoolean(false);
     private final AtomicLong currentMemoryUsage = new AtomicLong(0);
+    private final AtomicLong oversizeDroppedCount = new AtomicLong(0);
+    private final AtomicLong oversizeFallbackCount = new AtomicLong(0);
 
     public AsyncEngineImpl(AsyncEngineConfig config) {
         this(config, StorageServiceFactory.createStorageService(config.getStorageConfig()));
@@ -40,12 +42,27 @@ public class AsyncEngineImpl implements AsyncEngine, AutoCloseable {
 
     // 包级别可见的测试构造函数，允许传入Mock的StorageService
     AsyncEngineImpl(AsyncEngineConfig config, StorageService storageService) {
+        this(config, storageService, null, null);
+    }
+
+    AsyncEngineImpl(AsyncEngineConfig config,
+                    StorageService storageService,
+                    EnhancedDisruptorBatchingQueue queue,
+                    FallbackManager manager) {
         this.config = Objects.requireNonNull(config, "config cannot be null");
         this.storageService = Objects.requireNonNull(storageService, "storageService cannot be null");
         this.emergencyMemoryThreshold = (long) config.getEmergencyMemoryThresholdMb() * 1024 * 1024;
-        this.fallbackManager = new FallbackManager(config.getLogFilePrefix(), this.storageService.getKeyPrefix());
+        if (manager == null) {
+            this.fallbackManager = new FallbackManager(config.getLogFilePrefix(), this.storageService.getKeyPrefix());
+        } else {
+            this.fallbackManager = manager;
+        }
         this.shutdownHandler = new ShutdownHookHandler();
-        this.batchingQueue = createQueue();
+        if (queue == null) {
+            this.batchingQueue = createQueue();
+        } else {
+            this.batchingQueue = queue;
+        }
         registerShutdownHook();
     }
 
@@ -206,9 +223,42 @@ public class AsyncEngineImpl implements AsyncEngine, AutoCloseable {
             return;
         }
 
+        if (data.length > config.getPayloadMaxBytes()) {
+            handleOversizePayload(data);
+            return;
+        }
+
         if (batchingQueue.submit(data)) {
             currentMemoryUsage.addAndGet(data.length);
         }
+    }
+
+    private void handleOversizePayload(byte[] data) {
+        logger.warn("Payload exceeded max bytes, actual={}, max={}, policy={}",
+                data.length, config.getPayloadMaxBytes(), config.getOversizePayloadPolicy());
+
+        if (config.getOversizePayloadPolicy() == AsyncEngineConfig.OversizePayloadPolicy.FALLBACK_FILE) {
+            if (data.length > config.getOversizeFallbackMaxBytes()) {
+                long dropped = oversizeDroppedCount.incrementAndGet();
+                logger.warn("Oversize payload too large for fallback file, dropped. actual={}, fallbackMax={}, droppedCount={}",
+                        data.length, config.getOversizeFallbackMaxBytes(), dropped);
+                return;
+            }
+
+            if (fallbackManager.writeFallbackFile(data)) {
+                long fallbacked = oversizeFallbackCount.incrementAndGet();
+                logger.warn("Oversize payload written to fallback file. actual={}, fallbackCount={}",
+                        data.length, fallbacked);
+            } else {
+                long dropped = oversizeDroppedCount.incrementAndGet();
+                logger.warn("Oversize payload fallback write failed and was dropped. actual={}, droppedCount={}",
+                        data.length, dropped);
+            }
+            return;
+        }
+
+        long dropped = oversizeDroppedCount.incrementAndGet();
+        logger.warn("Oversize payload dropped. actual={}, droppedCount={}", data.length, dropped);
     }
 
     private boolean onBatch(byte[] batchData, int originalSize, boolean compressed, int messageCount) {
@@ -271,7 +321,10 @@ public class AsyncEngineImpl implements AsyncEngine, AutoCloseable {
         int fallbackScanIntervalSeconds = config.getFallbackScanIntervalSeconds();
 
         fallbackScheduler.scheduleWithFixedDelay(
-                new FallbackUploaderTask(storageService, config.getLogFilePrefix(), config.getLogFileName(), fallbackRetentionDays),
+                new FallbackUploaderTask(storageService, config.getLogFilePrefix(), config.getLogFileName(), fallbackRetentionDays,
+                        config.getFallbackMaxRetryFileBytes(),
+                        config.getFallbackMaxRetryFilesPerRound(),
+                        config.getFallbackMaxRetryBytesPerRound()),
                 1, fallbackScanIntervalSeconds, TimeUnit.SECONDS
         );
     }
